@@ -4,7 +4,7 @@ const path = require("path");
 const fs = require("fs");
 
 const app = express();
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 
 // Sets up the Express app to handle data parsing
 app.use(express.urlencoded({ extended: true }));
@@ -28,14 +28,12 @@ const saveDB = (data) =>
 // Delete Note
 app.delete("/api/notes/:id", (req, res) => {
   const id = Number(req.params.id);
-  console.log(id);
 
   const dbJson = getDB();
+
   // find id and remove it
   index = dbJson.findIndex((note) => note.id === id);
   dbJson.splice(index, 1);
-
-  console.log("dbJson:", dbJson);
 
   saveDB(dbJson);
   res.end();
@@ -46,22 +44,14 @@ app.post("/api/notes", (req, res) => {
   const newNote = req.body;
 
   // read in notes array
-  const dbJson = JSON.parse(
-    fs.readFileSync(path.join(__dirname, "db", "db.json"), {
-      encoding: "utf-8",
-    })
-  );
+  const dbJson = getDB;
 
-  // add item to array (increment last ID #)
+  // add item to array (increment last ID # - since it is always the highest number)
   newNote.id = dbJson.length > 0 ? dbJson[dbJson.length - 1].id + 1 : 0;
   dbJson.push(newNote);
 
   // re-save array
-  fs.writeFileSync(
-    path.join(__dirname, "db", "db.json"),
-    JSON.stringify(dbJson),
-    { encoding: "utf-8" }
-  );
+  saveDB(dbJson);
 
   res.json(newNote);
 });
