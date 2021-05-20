@@ -11,8 +11,36 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 //DATA - ignore for now
+const getDB = () =>
+  JSON.parse(
+    fs.readFileSync(path.join(__dirname, "db", "db.json"), {
+      encoding: "utf-8",
+    })
+  );
+const saveDB = (data) =>
+  fs.writeFileSync(
+    path.join(__dirname, "db", "db.json"),
+    JSON.stringify(data),
+    { encoding: "utf-8" }
+  );
 
 // ROUTES
+// Delete Note
+app.delete("/api/notes/:id", (req, res) => {
+  const id = Number(req.params.id);
+  console.log(id);
+
+  const dbJson = getDB();
+  // find id and remove it
+  index = dbJson.findIndex((note) => note.id === id);
+  dbJson.splice(index, 1);
+
+  console.log("dbJson:", dbJson);
+
+  saveDB(dbJson);
+  res.end();
+});
+
 // add new note to array
 app.post("/api/notes", (req, res) => {
   const newNote = req.body;
@@ -24,9 +52,11 @@ app.post("/api/notes", (req, res) => {
     })
   );
 
-  newNote.id = dbJson[dbJson.length - 1].id + 1;
+  // add item to array (increment last ID #)
+  newNote.id = dbJson.length > 0 ? dbJson[dbJson.length - 1].id + 1 : 0;
   dbJson.push(newNote);
 
+  // re-save array
   fs.writeFileSync(
     path.join(__dirname, "db", "db.json"),
     JSON.stringify(dbJson),
@@ -34,11 +64,6 @@ app.post("/api/notes", (req, res) => {
   );
 
   res.json(newNote);
-  // console.log(newNote);
-  // console.log(dbJson);
-
-  // add item to array (increment last ID #)
-  // re-save array
 });
 
 // return note list
