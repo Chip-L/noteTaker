@@ -46,7 +46,7 @@ app.post("/api/notes", (req, res) => {
 
   // read in notes array
   const dbJson = getDB();
-  console.log(dbJson);
+
   // add item to array (increment last ID # - since it is always the highest number)
   newNote.id = dbJson.length > 0 ? dbJson[dbJson.length - 1].id + 1 : 0;
   dbJson.push(newNote);
